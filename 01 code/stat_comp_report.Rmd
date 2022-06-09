@@ -2,10 +2,39 @@
 title: "2022_statistical_compute"
 author: "ZJH"
 date: "`r Sys.Date()`"
-output: word_document
+output: 
+  word_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,warning = FALSE)
+
 ```
 
+# init
+```{r,init}
+library(LearnBayes)
+data("birthweight")
+library(lattice)
+mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
+dotplot(mygender ~ weight, data = birthweight,
+xlab = "Birthweight", ylab = "Gender")
+```
+
+# condition 1 , A-R sampling
+```{r}
+
+```
+
+# condition 2 , MH with prior1
+```{r}
+
+```
+
+# condition 3 , MH with prior2
+```{r}
+
+```
+
+# The efficiency of three sampling schemes

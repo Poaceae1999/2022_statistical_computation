@@ -1,0 +1,11 @@
+---
+title: "2022_statistical_compute"
+author: "ZJH"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+

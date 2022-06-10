@@ -17,6 +17,8 @@ library(invgamma)
 library(LearnBayes)
 data("birthweight")
 library(lattice)
+library(boa)
+library(coda)
 mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
 dotplot(mygender ~ weight, data = birthweight,
 xlab = "Birthweight", ylab = "Gender")
@@ -80,5 +82,20 @@ for (i in 2:m) {
 
 ```{r}
 draw(prob,xt[1000:m] %>% sort() %>% head(8500,),shape = a,scale = b,b_cauchy = b_tau)
+```
+```{r}
+patient3 <- mcmc(xt)
+traceplot(patient3)
+densplot(patient3)
+meanplot <- function(patient)
+{
+mean <- patient%>% cumsum()
+mean <- mean/1:length(patient)
+plot(mean)
+}
+meanplot(patient3)
+heidel.diag(patient3)
+raftery.diag(patient3)
+autocorr.plot(patient3)
 ```
 

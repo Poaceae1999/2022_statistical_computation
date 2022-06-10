@@ -81,3 +81,19 @@ for (i in 2:m) {
 draw(prob,xt[1000:m] %>% sort() %>% head(8500,),shape = a,scale = b,b_cauchy = b_tau)
 ```
 
+```{r}
+patient2 <- mcmc(xt)
+traceplot(patient2)
+densplot(patient2)
+meanplot <- function(patient)
+{
+mean <- patient%>% cumsum()
+mean <- mean/1:length(patient)
+plot(mean)
+}
+meanplot(patient2)
+heidel.diag(patient2)
+raftery.diag(patient2)
+autocorr.plot(patient2)
+```
+

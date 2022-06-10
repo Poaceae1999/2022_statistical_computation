@@ -89,4 +89,11 @@ Cmax <- Cauchy_plus(10^-8,b_tau)
 dat <- collected_data_from(accept_reject_K_invG,times=1000,a = a,b = b,K = Cmax,fx=Cauchy_plus,b_cauchy=b_tau)
 draw(Cauchy_plus,dat,b_cauchy=b_tau)
 ```
+```{r}
+percentile <-  ppoints(100)
+QR <- qCauchy_plus()# not yet written
+Q <- quantile(x,percentile)
+qqplot(QR, Q, main="",
+       xlab="Rayleigh Quantiles", ylab="Sample Quantiles")
+```
 

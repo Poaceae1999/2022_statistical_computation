@@ -44,7 +44,7 @@ Independent Metropolis Hastings
 ```
 
 # gogogo
-# parameters
+# parameters for model
 ```{r}
 y1_bar <- mean(y1)
 y2_bar <- mean(y2)
@@ -54,35 +54,34 @@ b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
 a <- 1 # for proposal distribution inverse gamma(a,b) 
 b <- 1 # for proposal distribution inverse gamma(a,b)
 ```
-
+# parameters for simulation process
 ```{r}
-m <- 5000 #length of chain
+m <- 10000 #length of chain
 xt <- numeric(m)
-a <- 1 #parameter of Beta(a,b) proposal dist.
-b <- 1 #parameter of Beta(a,b) proposal dist.
-p <- .2 #mixing parameter
 n <- 30 #sample size
-mu <- c(0, 5) #parameters of the normal densities
-sigma <- c(1, 1)
 # generate the observed sample
-i <- sample(1:2, size=n, replace=TRUE, prob=c(p, 1-p))
-x <- rnorm(n, mu[i], sigma[i])
+x <- rinvgamma(n,shape = a,scale = b)
+
 # generate the independence sampler chain
 u <- runif(m)
-y <- rbeta(m, a, b) #proposal distribution
-xt[1] <- .5
+y <- rinvgamma(m,shape = a,scale = b) #proposal distribution
+xt[1] <- 1
 for (i in 2:m) {
-  fy <- y[i] * dnorm(x, mu[1], sigma[1]) +
-  (1-y[i]) * dnorm(x, mu[2], sigma[2])
-  fx <- xt[i-1] * dnorm(x, mu[1], sigma[1]) 
-    +(1-xt[i-1]) * dnorm(x, mu[2], sigma[2])
+  fy <- Cauchy_plus(x = y[i],b_cauchy = b_tau)
+  fx <- Cauchy_plus(x = xt[i-1],b_cauchy = b_tau)
   r <- prod(fy / fx) *
-    (xt[i-1]^(a-1) * (1-xt[i-1])^(b-1)) /
-    (y[i]^(a-1) * (1-y[i])^(b-1))
-  if (u[i] <= r) 
+    dinvgamma(xt[i-1],shape = a,scale = b) /
+    dinvgamma(y[i],shape = a,scale = b)
+  if (u[i] <= r){
     xt[i] <- y[i] 
-  else 
+  }else 
+  {
     xt[i] <- xt[i-1]
+  }
 }
+```
+
+```{r}
+draw(Cauchy_plus,xt[1000:m] %>% sort() %>% head(8500,),b_cauchy = b_tau)
 ```
 

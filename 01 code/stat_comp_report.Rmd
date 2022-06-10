@@ -14,9 +14,13 @@ knitr::opts_chunk$set(echo = TRUE,tidy=TRUE,warning = FALSE)
 
 # init
 ```{r,init}
+library(assertthat)
+library(invgamma)
 library(LearnBayes)
 data("birthweight")
 library(lattice)
+library(boa)
+library(coda)
 mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
 dotplot(mygender ~ weight, data = birthweight,
 xlab = "Birthweight", ylab = "Gender")
@@ -27,7 +31,7 @@ xlab = "Birthweight", ylab = "Gender")
 
 ```
 
-# condition 2 , MH with prior1
+# condition 2 , Independent MH with prior1
 ```{r}
 
 ```
@@ -38,3 +42,12 @@ xlab = "Birthweight", ylab = "Gender")
 ```
 
 # The efficiency of three sampling schemes
+```{r}
+
+```
+
+# Gibbs sampling
+```{r}
+
+```
+

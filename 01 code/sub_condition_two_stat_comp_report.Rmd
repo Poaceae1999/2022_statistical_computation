@@ -11,15 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # init
 ```{r,init}
-library(MyToolBox)
+library(boa)
+library(coda)
 library(assertthat)
 library(invgamma)
 library(LearnBayes)
 data("birthweight")
 library(lattice)
-mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
-dotplot(mygender ~ weight, data = birthweight,
-xlab = "Birthweight", ylab = "Gender")
+
 ```
 
 # distributions

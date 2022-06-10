@@ -8,23 +8,81 @@ output: word_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+# init
+```{r,init}
+library(MyToolBox)
+library(assertthat)
+library(invgamma)
+library(LearnBayes)
+data("birthweight")
+library(lattice)
+mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
+dotplot(mygender ~ weight, data = birthweight,
+xlab = "Birthweight", ylab = "Gender")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# distributions
+```{r}
+inv_Gamma <- function(x,a,b){
+  fx <- (b^a*exp(-b/x)*x^(-a-1))/gamma(a)
+  return(fx)}
+Cauchy_plus <- function(x,b_cauchy){
+  assert_that(b_cauchy>0)
+  fx <- 2/pi/(b_cauchy*(1+(x/b_cauchy)^2)*(x>0))
+  return(fx)
+              }
+```
+
+# functions
+Independent Metropolis Hastings 
+```{r}
+
+```
+
+# gogogo
+# parameters
+```{r}
+y1_bar <- mean(y1)
+y2_bar <- mean(y2)
+eta
+mu_bar <- mean(mu1,mu2)
+b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
+a <- 1 # for proposal distribution inverse gamma(a,b) 
+b <- 1 # for proposal distribution inverse gamma(a,b)
+```
+
+```{r}
+m <- 5000 #length of chain
+xt <- numeric(m)
+a <- 1 #parameter of Beta(a,b) proposal dist.
+b <- 1 #parameter of Beta(a,b) proposal dist.
+p <- .2 #mixing parameter
+n <- 30 #sample size
+mu <- c(0, 5) #parameters of the normal densities
+sigma <- c(1, 1)
+# generate the observed sample
+i <- sample(1:2, size=n, replace=TRUE, prob=c(p, 1-p))
+x <- rnorm(n, mu[i], sigma[i])
+# generate the independence sampler chain
+u <- runif(m)
+y <- rbeta(m, a, b) #proposal distribution
+xt[1] <- .5
+for (i in 2:m) {
+  fy <- y[i] * dnorm(x, mu[1], sigma[1]) +
+  (1-y[i]) * dnorm(x, mu[2], sigma[2])
+  fx <- xt[i-1] * dnorm(x, mu[1], sigma[1]) 
+    +(1-xt[i-1]) * dnorm(x, mu[2], sigma[2])
+  r <- prod(fy / fx) *
+    (xt[i-1]^(a-1) * (1-xt[i-1])^(b-1)) /
+    (y[i]^(a-1) * (1-y[i])^(b-1))
+  if (u[i] <= r) 
+    xt[i] <- y[i] 
+  else 
+    xt[i] <- xt[i-1]
+}
+```
+

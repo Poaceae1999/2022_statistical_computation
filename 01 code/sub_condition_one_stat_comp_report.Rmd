@@ -21,13 +21,7 @@ mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
 dotplot(mygender ~ weight, data = birthweight,
 xlab = "Birthweight", ylab = "Gender")
 ```
-# parameters
-```{r}
-y1_bar <- mean(y1)
-y2_bar <- mean(y2)
-mu_bar <- mean(mu)
 
-```
 # distributions
 ```{r}
 inv_Gamma <- function(x,a,b){
@@ -79,12 +73,20 @@ draw <- function(fx,Observation,...)
 ```
 
 # gogogo
+# parameters
 ```{r}
-b_tau <- 1# i don't know
+y1_bar <- mean(y1)
+y2_bar <- mean(y2)
+eta
+mu_bar <- mean(mu1,mu2)
+b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
+a <- 1 # for proposal distribution inverse gamma(a,b) 
+b <- 1 # for proposal distribution inverse gamma(a,b)
+```
 
-a <- 1
+```{r}
 Cmax <- Cauchy_plus(10^-8,b_tau)
-dat <- collected_data_from(accept_reject_K_invG,times=1000,a = a,b = 1,K = Cmax,fx=Cauchy_plus,b_cauchy=b_tau)
+dat <- collected_data_from(accept_reject_K_invG,times=1000,a = a,b = b,K = Cmax,fx=Cauchy_plus,b_cauchy=b_tau)
 draw(Cauchy_plus,dat,b_cauchy=b_tau)
 ```
 

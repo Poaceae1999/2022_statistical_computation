@@ -9,22 +9,76 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# init
+```{r,init}
+library(MyToolBox)
+library(assertthat)
+library(invgamma)
+library(LearnBayes)
+data("birthweight")
+library(lattice)
+mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
+dotplot(mygender ~ weight, data = birthweight,
+xlab = "Birthweight", ylab = "Gender")
 ```
 
-## Including Plots
+# distributions
+```{r}
+inv_Gamma <- function(x,a,b){
+  fx <- (b^a*exp(-b/x)*x^(-a-1))/gamma(a)
+  return(fx)}
+Cauchy_plus <- function(x,b_cauchy){
+  assert_that(b_cauchy>0)
+  fx <- 2/pi/(b_cauchy*(1+(x/b_cauchy)^2)*(x>0))
+  return(fx)
+}
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# functions
+Independent Metropolis Hastings 
+```{r}
+
+```
+
+# gogogo
+# parameters for model
+```{r}
+y1_bar <- mean(y1)
+y2_bar <- mean(y2)
+eta
+mu_bar <- mean(mu1,mu2)
+b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
+a <- 1 # for proposal distribution inverse gamma(a,b) 
+b <- 1 # for proposal distribution inverse gamma(a,b)
+```
+# parameters for simulation process
+```{r}
+m <- 10000 #length of chain
+xt <- numeric(m)
+n <- 30 #sample size
+# generate the observed sample
+xt[1] <- rchisq(1,df = 1)
+counter <- 0
+# generate the independence sampler chain
+u <- runif(m)
+for (i in 2:m) {
+  y <- rchisq(1,df = xt[i-1]) #proposal distribution
+  fy <- Cauchy_plus(x = y,b_cauchy = b_tau)
+  fx <- Cauchy_plus(x = xt[i-1],b_cauchy = b_tau)
+  r <- prod(fy / fx) *
+    dchisq(xt[i-1],df=y) /
+    dchisq(y,df=xt[i-1])
+  if (u[i] <= r){
+    xt[i] <- y 
+  }else 
+  {
+    xt[i] <- xt[i-1]
+  }
+}
+```
+
+```{r}
+draw(Cauchy_plus,xt[1000:m] %>% sort() %>% head(8500,),b_cauchy = b_tau)
+```
+

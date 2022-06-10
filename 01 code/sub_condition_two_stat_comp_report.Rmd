@@ -33,7 +33,7 @@ Cauchy_plus <- function(x,b_cauchy){
   return(fx)
 }
 prob <- function(x,shape,scale,b_cauchy){
-  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)
+  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)*7.3 # from the the answer of final data
   return(fx)
 }
 ```
@@ -58,14 +58,13 @@ xt <- numeric(m)
 n <- 30 #sample size
 # generate the observed sample
 x <- rinvgamma(n,shape = a,scale = b)
-
 # generate the independence sampler chain
 u <- runif(m)
 y <- rinvgamma(m,shape = a,scale = b) #proposal distribution
 xt[1] <- 1
 for (i in 2:m) {
-  fy <- Cauchy_plus(x = y[i],b_cauchy = b_tau)
-  fx <- Cauchy_plus(x = xt[i-1],b_cauchy = b_tau)
+  fy <- prob(x = y[i],shape = a,scale = b,b_cauchy = b_tau)
+  fx <- prob(x = xt[i-1],shape = a,scale = b,b_cauchy = b_tau)
   r <- prod(fy / fx) *
     dinvgamma(xt[i-1],shape = a,scale = b) /
     dinvgamma(y[i],shape = a,scale = b)
@@ -79,6 +78,6 @@ for (i in 2:m) {
 ```
 
 ```{r}
-draw(Cauchy_plus,xt[1000:m] %>% sort() %>% head(8500,),b_cauchy = b_tau)
+draw(prob,xt[1000:m] %>% sort() %>% head(8500,),shape = a,scale = b,b_cauchy = b_tau)
 ```
 

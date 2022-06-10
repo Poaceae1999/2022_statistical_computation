@@ -7,10 +7,10 @@ b <- 1 # for proposal distribution inverse gamma(a,b)
 
 Cmax <- Cauchy_plus(10^-8,b_tau)
 target_dist <- function(x,a_1,b_1,b_cauchy){
-  fx <- dinvgamma(x^2,shape =a_1,scale=b_1)*Cauchy_plus(x,b_cauchy=b_cauchy)*6.873381
+  fx <- dinvgamma(x^2,shape =a_1,scale=b_1)*Cauchy_plus(x,b_cauchy=b_cauchy)*7.3
   return(fx)
 }
-dat <- collected_data_from(accept_reject_K_invG,times=50000,a_1=a,b_1=b,a = a,b = b,K = Cmax,fx=target_dist,b_cauchy=b_tau)
+dat <- collected_data_from(accept_reject_K_invG,times=10000,a_1=a,b_1=b,a = a,b = b,K = Cmax,fx=target_dist,b_cauchy=b_tau)
 
 draw(target_dist,dat,b_cauchy=b_tau,a_1=a,b_1=b)
 

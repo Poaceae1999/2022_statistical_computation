@@ -32,7 +32,7 @@ Cauchy_plus <- function(x,b_cauchy){
   fx <- 2/pi/(b_cauchy*(1+(x/b_cauchy)^2)*(x>0))
   return(fx)
 }
-target_dist <- function(x,shape,scale,b_cauchy){
+prob <- function(x,shape,scale,b_cauchy){
   fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)
   return(fx)
 }

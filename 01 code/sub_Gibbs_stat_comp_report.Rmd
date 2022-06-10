@@ -23,6 +23,8 @@ library(coda)
 # distributions
 ```{r}
 dinvgamma <- function(x,shape,scale){
+  assert_that(x!=0)
+  assert_that(shape!=0)
   fx <- (scale^shape*exp(-scale/x)*x^(-shape-1))/gamma(shape)
   return(fx)}
 Cauchy_plus <- function(x,b_cauchy){
@@ -31,31 +33,57 @@ Cauchy_plus <- function(x,b_cauchy){
   return(fx)
 }
 prob <- function(x,shape,scale,b_cauchy){
-  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)*7.3
+  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)
+  assert_that(dinvgamma(x^2,shape =shape,scale=scale)!=0)
+  assert_that(Cauchy_plus(x,b_cauchy=b_cauchy)!=0)
+  assert_that(fx!=0)
   return(fx)
 }
 
 ```
 
-# functions
-# gogogo
-# parameters for model
+# parameters for simulation process
 ```{r}
-n1 <- sum(birthweight$gender==0)
-n2 <- sum(birthweight$gender==1)
-
+var_chain <- function(shape,scale,b_tau){
+  a <- shape# for proposal distribution inverse gamma(a,b) 
+  b <- round(scale) # for proposal distribution inverse gamma(a,b)
+  m=1501
+  xt <- numeric(m)
+  # generate the observed sample
+  x <- rinvgamma(n,shape = a,scale = b)
+  # generate the independence sampler chain
+  u <- runif(m)
+  y <- rinvgamma(m,shape = a,scale = b) #proposal distribution
+  xt[1] <- 1
+  for (i in 2:m) {
+    fy <- prob(x = y[i],shape = a,scale = b,b_cauchy = b_tau)
+    fx <- prob(x = xt[i-1],shape = a,scale = b,b_cauchy = b_tau)
+    r <- prod(fy / fx) *
+      dinvgamma(xt[i-1],shape = a,scale = b) /
+      dinvgamma(y[i],shape = a,scale = b)
+    if (u[i] <= r){
+      xt[i] <- y[i] 
+    }else 
+    {
+      xt[i] <- xt[i-1]
+    }
+  }
+  return(xt[m])
+}
 ```
+
+
 
 # full conditionals
 ```{r}
 # mu1
 p_mu1 <- function(eta,sigma,tau,y1j) { 
-  fx <- rnorm(n = 1,
+  sample_mu1 <- rnorm(n = 1,
               mean = (1/((sigma^2)/n1) + 1/tau^2)
               *(mean(y1j)/(sigma^2/n1)+eta/tau^2) ,
               sd = (1/(sigma^2/n1)+1/tau^2)^(-0.5)
   )
-  return(fx)
+  return(sample_mu1)
   }
 p_mu2 <- function(eta,sigma,tau,y2j) { 
   fx <- rnorm(n = 1,
@@ -65,27 +93,64 @@ p_mu2 <- function(eta,sigma,tau,y2j) {
   return(fx)
   }
 p_eta <- function(mu1,mu2,tau) { 
-  fx <- rnorm(n = 1,
+  sample_mu2 <- rnorm(n = 1,
               mean = mean(mu1,mu2),
               sd = ((tau^2)/2)^0.5)
-  return(fx)}
-p_sigma <- function(eta,sigma,tau,y1j,y2j,mu1,mu2) {
-  fx <- rinvgamma(n = 1,
-                     shape = mean(n1,n2),
-                     scale = sum((y1j-mu1)^2 + (y2j-mu2)^2)) * Cauchy_plus(0,b_sigma)
-  return(fx)  }
+  return(sample_mu2)}
+p_sigma <- function(eta,tau,y1j,y2j,mu1,mu2) {
+  sample_sigma <- var_chain(shape = mean(n1,n2),
+                            scale = sum((y1j-mu1)^2 + (y2j-mu2)^2)/2,
+                            b_sigma)
+  
+  return(sample_sigma)  }
 
 p_tau <- function(eta,mu1,mu2) { 
-  fx <- rinvgamma(n = 1,
-                     shape = 1,
-                     scale = mean((mu1-eta)^2, 
-                                  (mu2-eta)^2))*Cauchy_plus(0,b_tau)
-  return(fx)
-  }
+  sample_tau <- var_chain(shape = 1,
+                          scale = mean((mu1-eta)^2,(mu2-eta)^2),
+                          b_tau)
+  return(sample_tau)
+}
                      
+```
+# parameters for model----
+```{r}
+Nsim=5000 #initial values
+n1 <- sum(birthweight$gender==0)
+n2 <- sum(birthweight$gender==1)
+b_tau <- 1
+b_sigma <- 1
+mu1 = mu2 = eta = tau = sigma = array(0,c(Nsim,1))
+y1j <- array(0,c(Nsim,n1))
+y2j <- array(0,c(Nsim,n2))
+
+mu1[1] <- 500
+mu2[1] <- 300
+eta[1] <- 400
+sigma[1] <- 1
+tau[1] <- 1
+y1j[1,] <- rnorm(n = n1,
+               mean = mu1[1],
+               sd = sigma[1])
+y2j[1,] <- rnorm(n = n2,
+               mean = mu2[1],
+               sd = sigma[1])
 ```
 
 ```{r}
 
+for (i in 2:Nsim){ #sampling loop
+  mu1[i] <- p_mu1(eta[i-1],sigma[i-1],tau[i-1],y1j[i-1,])
+  mu2[i] <- p_mu2(eta[i-1],sigma[i-1],tau[i-1],y2j[i-1,])
+  eta[i] <- p_eta(mu1[i],mu2[i],tau[i-1])
+  tau[i] <- p_tau(eta[i],mu1[i],mu2[i])
+  sigma[i] <- p_sigma(eta[i],tau[i],y1j[i-1,],y2j[i-1,],mu1[i],mu2[i])
+  y1j[i,] <- rnorm(n = n1,
+               mean = mu1[i],
+               sd = sigma[i])
+  y2j[i,] <- rnorm(n = n2,
+               mean = mu2[i],
+               sd = sigma[i])
+  
+ }
 ```
 

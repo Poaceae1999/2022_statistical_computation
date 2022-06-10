@@ -18,12 +18,14 @@ library(invgamma)
 library(LearnBayes)
 data("birthweight")
 library(lattice)
-
+library(tidyverse)
 ```
 
 # distributions
 ```{r}
 dinvgamma <- function(x,shape,scale){
+  assert_that(x!=0)
+  assert_that(shape!=0)
   fx <- (scale^shape*exp(-scale/x)*x^(-shape-1))/gamma(shape)
   return(fx)}
 Cauchy_plus <- function(x,b_cauchy){
@@ -32,18 +34,23 @@ Cauchy_plus <- function(x,b_cauchy){
   return(fx)
 }
 prob <- function(x,shape,scale,b_cauchy){
-  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)*7.3 # from the the answer of final data
+  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)
+  assert_that(dinvgamma(x^2,shape =shape,scale=scale)!=0)
+  assert_that(Cauchy_plus(x,b_cauchy=b_cauchy)!=0)
+  assert_that(fx!=0)
   return(fx)
 }
 ```
 
-# functions
-Independent Metropolis Hastings 
+# function
 ```{r}
-
+draw <- function(fx,Observation,...)
+{
+  hist(Observation,nclass=25,freq = FALSE,main="")
+  curve(fx(x,...),add=TRUE,lty = 2, lwd = 2,col='red')
+}
 ```
 
-# gogogo
 # parameters for model
 ```{r}
 b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
@@ -52,9 +59,9 @@ b <- 1 # for proposal distribution inverse gamma(a,b)
 ```
 # parameters for simulation process
 ```{r}
-m <- 10000 #length of chain
+m <- 3000 #length of chain
 xt <- numeric(m)
-n <- 30 #sample size
+n=30
 # generate the observed sample
 x <- rinvgamma(n,shape = a,scale = b)
 # generate the independence sampler chain
@@ -76,9 +83,6 @@ for (i in 2:m) {
 }
 ```
 
-```{r}
-draw(prob,xt[1000:m] %>% sort() %>% head(8500,),shape = a,scale = b,b_cauchy = b_tau)
-```
 
 ```{r}
 patient2 <- mcmc(xt)

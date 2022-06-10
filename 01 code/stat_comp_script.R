@@ -30,7 +30,7 @@ Q <- quantile(dat, pr[6:25])
 qqplot(QR, Q, main="",
            xlab="Target Quantiles", ylab="Sample Quantiles")
 
-# bayes----
+# bayes(mcmc)----
 b <- .2 #actual value of beta
 w <- .25 #width of the uniform support set
 m <- 5000 #length of the chain
@@ -67,4 +67,18 @@ print(round(win/days, 3))
 print(round(c(1, 1-b, 1-2*b, 2*b, b)/3, 3))
 xb <- x[(burn+1):m]
 print(mean(xb))
+
+
+#gibbs----
+Nsim=5000 #initial values
+n=15
+a=3
+b=7
+X=G=array(0,dim=c(Nsim,1)) #init arrays
+G[1]=rbeta(1,a,b) #init chains
+X[1]=rbinom(1,n,G[1])
+for (i in 2:Nsim){ #sampling loop
+  X[i]=rbinom(1,n,G[i-1])
+  G[i]=rbeta(1,a+X[i],n-X[i]+b)
+}
 

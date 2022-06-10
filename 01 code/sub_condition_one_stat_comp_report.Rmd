@@ -9,22 +9,82 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# init
+```{r,init}
+library(MyToolBox)
+library(assertthat)
+library(invgamma)
+library(LearnBayes)
+data("birthweight")
+library(lattice)
+mygender <- with(birthweight, ifelse(birthweight$gender==0,"Male","Female"))
+dotplot(mygender ~ weight, data = birthweight,
+xlab = "Birthweight", ylab = "Gender")
+```
+# parameters
+```{r}
+y1_bar <- mean(y1)
+y2_bar <- mean(y2)
+mu_bar <- mean(mu)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```
+# distributions
+```{r}
+inv_Gamma <- function(x,a,b){
+  fx <- (b^a*exp(-b/x)*x^(-a-1))/gamma(a)
+  return(fx)}
+Cauchy_plus <- function(x,b_cauchy){
+  assert_that(b_cauchy>0)
+  fx <- 2/pi/(b_cauchy*(1+(x/b_cauchy)^2)*(x>0))
+  return(fx)
+              }
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+# functions
+A-R method
+```{r}
+accept_reject_K_invG <- function(a,b,K,fx,...)
+{
+  while(TRUE)
+  {
+    x <- rinvgamma(1,a,b)
+    y <- runif(1,0,K) # choose a # from 0 to k 
+    if(y<fx(x,...)/dinvgamma(x,shape=a,scale=b)) # compare f(x) and y until y<fx(x),only reserve the y in the domain we want.
+      break
+  }
+  return(x)
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+data multiply
+```{r}
+
+collected_data_from <- function(data_producer,times,...)
+{
+  Observations <- rep(0,times) 
+  for (i in 1:times) 
+  {
+    Observations[i] <- data_producer(...)
+  }
+  return(Observations)
+}
+```
+
+```{r}
+draw <- function(fx,Observation,...)
+{
+  hist(Observation,nclass=25,freq = FALSE,main="")
+  curve(fx(x,...),add=TRUE,lty = 2, lwd = 2,col='red')
+}
+```
+
+# gogogo
+```{r}
+b_tau <- 1# i don't know
+
+a <- 1
+Cmax <- Cauchy_plus(10^-8,b_tau)
+dat <- collected_data_from(accept_reject_K_invG,times=1000,a = a,b = 1,K = Cmax,fx=Cauchy_plus,b_cauchy=b_tau)
+draw(Cauchy_plus,dat,b_cauchy=b_tau)
+```
+

@@ -24,14 +24,18 @@ xlab = "Birthweight", ylab = "Gender")
 
 # distributions
 ```{r}
-inv_Gamma <- function(x,a,b){
-  fx <- (b^a*exp(-b/x)*x^(-a-1))/gamma(a)
+dinvgamma <- function(x,shape,scale){
+  fx <- (scale^shape*exp(-scale/x)*x^(-shape-1))/gamma(shape)
   return(fx)}
 Cauchy_plus <- function(x,b_cauchy){
   assert_that(b_cauchy>0)
   fx <- 2/pi/(b_cauchy*(1+(x/b_cauchy)^2)*(x>0))
   return(fx)
-              }
+}
+target_dist <- function(x,shape,scale,b_cauchy){
+  fx <- dinvgamma(x^2,shape =shape,scale=scale)*Cauchy_plus(x,b_cauchy=b_cauchy)
+  return(fx)
+}
 ```
 
 # functions
@@ -75,10 +79,6 @@ draw <- function(fx,Observation,...)
 # gogogo
 # parameters
 ```{r}
-y1_bar <- mean(y1)
-y2_bar <- mean(y2)
-eta
-mu_bar <- mean(mu1,mu2)
 b_tau <- 1# i don't know what actually is,for cauchy plus(0,b_tau)
 a <- 1 # for proposal distribution inverse gamma(a,b) 
 b <- 1 # for proposal distribution inverse gamma(a,b)
@@ -87,13 +87,9 @@ b <- 1 # for proposal distribution inverse gamma(a,b)
 ```{r}
 Cmax <- Cauchy_plus(10^-8,b_tau)
 dat <- collected_data_from(accept_reject_K_invG,times=1000,a = a,b = b,K = Cmax,fx=Cauchy_plus,b_cauchy=b_tau)
-draw(Cauchy_plus,dat,b_cauchy=b_tau)
+draw(Cauchy_plus,dat %>%sort() %>%  head(950),b_cauchy=b_tau)
 ```
 ```{r}
-percentile <-  ppoints(100)
-QR <- qCauchy_plus()# not yet written
-Q <- quantile(x,percentile)
-qqplot(QR, Q, main="",
-       xlab="Rayleigh Quantiles", ylab="Sample Quantiles")
+
 ```
 
